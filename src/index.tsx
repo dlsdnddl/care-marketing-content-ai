@@ -4,6 +4,7 @@ import { LandingPage } from './pages/landing'
 import { LoginPage } from './pages/login'
 import { SignupPage } from './pages/signup'
 import { DashboardPage } from './pages/dashboard'
+import { OnboardingPage } from './pages/onboarding'
 
 const app = new Hono()
 
@@ -22,6 +23,11 @@ app.get('/login', (c) => {
 // 회원가입 페이지
 app.get('/signup', (c) => {
   return c.render(<SignupPage />)
+})
+
+// 온보딩 페이지 (센터 정보 등록)
+app.get('/onboarding', (c) => {
+  return c.render(<OnboardingPage />)
 })
 
 // 대시보드 페이지

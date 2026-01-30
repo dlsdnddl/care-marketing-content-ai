@@ -227,6 +227,114 @@ function formatUserInfo(user) {
   };
 }
 
+// ============================================
+// Centers 테이블 관련 함수
+// ============================================
+
+// 사용자의 센터 정보 조회
+async function getUserCenter(userId) {
+  const client = await initSupabase();
+  if (!client) return null;
+  
+  try {
+    const { data, error } = await client
+      .from('centers')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error) {
+      // 데이터가 없는 경우 (PGRST116) 또는 테이블이 없는 경우
+      if (error.code === 'PGRST116' || error.code === '42P01') {
+        return null;
+      }
+      console.error('Center fetch error:', error);
+      return null;
+    }
+    return data;
+  } catch (e) {
+    console.error('Center fetch exception:', e);
+    return null;
+  }
+}
+
+// 센터 정보 저장
+async function saveCenter(centerData) {
+  const client = await initSupabase();
+  if (!client) throw new Error('Supabase not initialized');
+  
+  const session = await getSession();
+  if (!session?.user) throw new Error('User not authenticated');
+  
+  const { data, error } = await client
+    .from('centers')
+    .insert({
+      user_id: session.user.id,
+      center_name: centerData.centerName,
+      origin_story: centerData.originStory,
+      care_philosophy: centerData.carePhilosophy,
+      core_principle: centerData.corePrinciple,
+      unique_detail: centerData.uniqueDetail,
+      vision: centerData.vision,
+      other_strengths: centerData.otherStrengths
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  
+  // user_metadata에도 센터명 업데이트
+  await client.auth.updateUser({
+    data: { center_name: centerData.centerName }
+  });
+  
+  return data;
+}
+
+// 센터 정보 업데이트
+async function updateCenter(centerId, centerData) {
+  const client = await initSupabase();
+  if (!client) throw new Error('Supabase not initialized');
+  
+  const { data, error } = await client
+    .from('centers')
+    .update({
+      center_name: centerData.centerName,
+      origin_story: centerData.originStory,
+      care_philosophy: centerData.carePhilosophy,
+      core_principle: centerData.corePrinciple,
+      unique_detail: centerData.uniqueDetail,
+      vision: centerData.vision,
+      other_strengths: centerData.otherStrengths,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', centerId)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+// 온보딩 필요 여부 확인 (센터 정보 없으면 온보딩 필요)
+async function checkOnboardingRequired() {
+  const session = await getSession();
+  if (!session?.user) return false;
+  
+  const center = await getUserCenter(session.user.id);
+  return !center; // 센터 정보가 없으면 true
+}
+
+// 대시보드 진입 시 온보딩 체크
+async function requireOnboarding() {
+  const needsOnboarding = await checkOnboardingRequired();
+  if (needsOnboarding) {
+    window.location.href = '/onboarding';
+    return true;
+  }
+  return false;
+}
+
 // 전역으로 내보내기
 window.SupabaseAuth = {
   init: initSupabase,
@@ -240,7 +348,13 @@ window.SupabaseAuth = {
   isLoggedIn,
   requireAuth,
   redirectIfLoggedIn,
-  formatUserInfo
+  formatUserInfo,
+  // Centers 관련
+  getUserCenter,
+  saveCenter,
+  updateCenter,
+  checkOnboardingRequired,
+  requireOnboarding
 };
 
 console.log('Supabase Auth module loaded');

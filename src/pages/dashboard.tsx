@@ -405,9 +405,25 @@ export const DashboardPage = () => {
                 return;
               }
               
-              // 사용자 정보 로드
+              // 온보딩 체크 - 센터 정보가 없으면 온보딩으로 리다이렉트
+              const center = await SupabaseAuth.getUserCenter(session.user.id);
+              if (!center) {
+                console.log('No center found, redirecting to onboarding');
+                window.location.href = '/onboarding';
+                return;
+              }
+              
+              // 사용자 정보 로드 (센터 정보 포함)
               if (session.user) {
-                updateUserInfo(session.user);
+                // 센터 정보가 있으면 user_metadata 대신 centers 테이블에서 센터명 사용
+                const userWithCenter = {
+                  ...session.user,
+                  user_metadata: {
+                    ...session.user.user_metadata,
+                    center_name: center.center_name
+                  }
+                };
+                updateUserInfo(userWithCenter);
               }
               
               // 로딩 오버레이 숨기기
