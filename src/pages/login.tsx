@@ -18,6 +18,9 @@ export const LoginPage = () => {
 
           {/* 로그인 폼 */}
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            {/* 에러/성공 메시지 */}
+            <div id="alertMessage" class="hidden mb-4 p-4 rounded-lg text-sm"></div>
+            
             <form id="loginForm" class="space-y-5">
               {/* 이메일 */}
               <div>
@@ -52,10 +55,10 @@ export const LoginPage = () => {
               {/* 로그인 유지 & 비밀번호 찾기 */}
               <div class="flex items-center justify-between">
                 <label class="flex items-center">
-                  <input type="checkbox" class="w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500" />
+                  <input type="checkbox" id="rememberMe" class="w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500" />
                   <span class="ml-2 text-sm text-gray-600">로그인 유지</span>
                 </label>
-                <a href="#" class="text-sm text-primary-600 hover:text-primary-700">
+                <a href="#" onclick="alert('비밀번호 찾기 기능은 준비 중입니다'); return false;" class="text-sm text-primary-600 hover:text-primary-700">
                   비밀번호 찾기
                 </a>
               </div>
@@ -63,9 +66,13 @@ export const LoginPage = () => {
               {/* 로그인 버튼 */}
               <button
                 type="submit"
-                class="w-full bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                id="submitBtn"
+                class="w-full bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                로그인
+                <span id="submitText">로그인</span>
+                <span id="submitLoading" class="hidden">
+                  <i class="fas fa-spinner fa-spin mr-2"></i>로그인 중...
+                </span>
               </button>
             </form>
 
@@ -118,20 +125,71 @@ export const LoginPage = () => {
       {/* 로그인 스크립트 */}
       <script dangerouslySetInnerHTML={{
         __html: `
+          // 페이지 로드 시 이미 로그인되어 있으면 대시보드로 리다이렉트
+          document.addEventListener('DOMContentLoaded', async function() {
+            await SupabaseAuth.init();
+            await SupabaseAuth.redirectIfLoggedIn('/dashboard');
+          });
+
+          // 알림 메시지 표시
+          function showAlert(message, type = 'error') {
+            const alertEl = document.getElementById('alertMessage');
+            alertEl.textContent = message;
+            alertEl.className = 'mb-4 p-4 rounded-lg text-sm ' + 
+              (type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700');
+            alertEl.classList.remove('hidden');
+          }
+
+          // 버튼 로딩 상태
+          function setLoading(loading) {
+            const btn = document.getElementById('submitBtn');
+            const text = document.getElementById('submitText');
+            const loadingEl = document.getElementById('submitLoading');
+            
+            btn.disabled = loading;
+            text.classList.toggle('hidden', loading);
+            loadingEl.classList.toggle('hidden', !loading);
+          }
+
+          // 로그인 폼 제출
           document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
-            // 목업 로그인 - 나중에 Supabase 연결
-            if (email && password) {
-              localStorage.setItem('user', JSON.stringify({
-                email: email,
-                name: email.split('@')[0],
-                centerName: '행복한 방문요양센터',
-                credits: 15
-              }));
-              window.location.href = '/dashboard';
+            if (!email || !password) {
+              showAlert('이메일과 비밀번호를 입력해주세요.');
+              return;
+            }
+
+            setLoading(true);
+            
+            try {
+              const data = await SupabaseAuth.signIn(email, password);
+              
+              if (data.user) {
+                showAlert('로그인 성공! 대시보드로 이동합니다.', 'success');
+                setTimeout(() => {
+                  window.location.href = '/dashboard';
+                }, 1000);
+              }
+            } catch (error) {
+              console.error('Login error:', error);
+              
+              // 에러 메시지 한글화
+              let errorMessage = error.message;
+              if (error.message.includes('Invalid login credentials')) {
+                errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
+              } else if (error.message.includes('Email not confirmed')) {
+                errorMessage = '이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.';
+              } else if (error.message.includes('Too many requests')) {
+                errorMessage = '너무 많은 요청이 있었습니다. 잠시 후 다시 시도해주세요.';
+              }
+              
+              showAlert(errorMessage);
+            } finally {
+              setLoading(false);
             }
           });
         `

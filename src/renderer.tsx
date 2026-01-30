@@ -34,9 +34,13 @@ export const renderer = jsxRenderer(({ children }) => {
         }} />
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
         <link href="/static/style.css" rel="stylesheet" />
+        {/* Supabase JS 라이브러리 */}
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
       </head>
       <body class="bg-gray-50 min-h-screen">
         {children}
+        {/* Supabase 인증 모듈 */}
+        <script src="/static/supabase-auth.js"></script>
         <script src="/static/app.js"></script>
       </body>
     </html>

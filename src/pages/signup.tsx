@@ -18,6 +18,9 @@ export const SignupPage = () => {
 
           {/* 회원가입 폼 */}
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            {/* 에러/성공 메시지 */}
+            <div id="alertMessage" class="hidden mb-4 p-4 rounded-lg text-sm"></div>
+            
             <form id="signupForm" class="space-y-5">
               {/* 센터명 */}
               <div>
@@ -74,8 +77,8 @@ export const SignupPage = () => {
                   id="password"
                   name="password"
                   required
-                  minlength="8"
-                  placeholder="8자 이상 입력하세요"
+                  minlength="6"
+                  placeholder="6자 이상 입력하세요"
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 />
               </div>
@@ -126,9 +129,13 @@ export const SignupPage = () => {
               {/* 가입 버튼 */}
               <button
                 type="submit"
-                class="w-full bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 mt-4"
+                id="submitBtn"
+                class="w-full bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                무료로 시작하기
+                <span id="submitText">무료로 시작하기</span>
+                <span id="submitLoading" class="hidden">
+                  <i class="fas fa-spinner fa-spin mr-2"></i>처리 중...
+                </span>
               </button>
             </form>
 
@@ -181,6 +188,32 @@ export const SignupPage = () => {
       {/* 회원가입 스크립트 */}
       <script dangerouslySetInnerHTML={{
         __html: `
+          // 페이지 로드 시 이미 로그인되어 있으면 대시보드로 리다이렉트
+          document.addEventListener('DOMContentLoaded', async function() {
+            await SupabaseAuth.init();
+            await SupabaseAuth.redirectIfLoggedIn('/dashboard');
+          });
+
+          // 알림 메시지 표시
+          function showAlert(message, type = 'error') {
+            const alertEl = document.getElementById('alertMessage');
+            alertEl.textContent = message;
+            alertEl.className = 'mb-4 p-4 rounded-lg text-sm ' + 
+              (type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700');
+            alertEl.classList.remove('hidden');
+          }
+
+          // 버튼 로딩 상태
+          function setLoading(loading) {
+            const btn = document.getElementById('submitBtn');
+            const text = document.getElementById('submitText');
+            const loadingEl = document.getElementById('submitLoading');
+            
+            btn.disabled = loading;
+            text.classList.toggle('hidden', loading);
+            loadingEl.classList.toggle('hidden', !loading);
+          }
+
           // 전체 동의 체크박스
           document.getElementById('agreeAll').addEventListener('change', function() {
             const checkboxes = ['agreeTerms', 'agreePrivacy', 'agreeMarketing'];
@@ -207,24 +240,68 @@ export const SignupPage = () => {
             const passwordConfirm = document.getElementById('passwordConfirm').value;
             
             if (password !== passwordConfirm) {
-              alert('비밀번호가 일치하지 않습니다.');
+              showAlert('비밀번호가 일치하지 않습니다.');
               return;
             }
 
-            const centerName = document.getElementById('centerName').value;
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            if (password.length < 6) {
+              showAlert('비밀번호는 6자 이상이어야 합니다.');
+              return;
+            }
+
+            const centerName = document.getElementById('centerName').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             
-            // 목업 회원가입 - 나중에 Supabase 연결
-            localStorage.setItem('user', JSON.stringify({
-              email: email,
-              name: name,
-              centerName: centerName,
-              credits: 15
-            }));
+            if (!centerName || !name || !email) {
+              showAlert('모든 필수 항목을 입력해주세요.');
+              return;
+            }
+
+            setLoading(true);
             
-            alert('회원가입이 완료되었습니다! 5회 무료 이용권이 지급되었습니다.');
-            window.location.href = '/dashboard';
+            try {
+              const data = await SupabaseAuth.signUp(email, password, {
+                name: name,
+                centerName: centerName
+              });
+              
+              if (data.user) {
+                showAlert('회원가입이 완료되었습니다! 15 크레딧이 지급되었습니다.', 'success');
+                
+                // 이메일 인증이 필요한 경우
+                if (data.user.identities?.length === 0) {
+                  showAlert('이미 가입된 이메일입니다. 로그인해주세요.');
+                  setTimeout(() => {
+                    window.location.href = '/login';
+                  }, 2000);
+                } else if (!data.session) {
+                  // 이메일 인증이 필요한 경우
+                  showAlert('이메일로 인증 링크를 발송했습니다. 이메일을 확인해주세요.', 'success');
+                } else {
+                  // 바로 로그인된 경우
+                  setTimeout(() => {
+                    window.location.href = '/dashboard';
+                  }, 1500);
+                }
+              }
+            } catch (error) {
+              console.error('Signup error:', error);
+              
+              // 에러 메시지 한글화
+              let errorMessage = error.message;
+              if (error.message.includes('already registered')) {
+                errorMessage = '이미 가입된 이메일입니다.';
+              } else if (error.message.includes('Invalid email')) {
+                errorMessage = '올바른 이메일 형식을 입력해주세요.';
+              } else if (error.message.includes('Password')) {
+                errorMessage = '비밀번호는 6자 이상이어야 합니다.';
+              }
+              
+              showAlert(errorMessage);
+            } finally {
+              setLoading(false);
+            }
           });
         `
       }} />
