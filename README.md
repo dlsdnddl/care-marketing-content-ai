@@ -17,39 +17,46 @@
 | `/signup` | 회원가입 페이지 | ❌ |
 | `/onboarding` | 센터 정보 등록 (챗봇 인터뷰) | ✅ |
 | `/dashboard` | 대시보드 (콘텐츠 생성) | ✅ |
+| `/create/title` | 블로그 제목 생성 (1 크레딧) | ✅ |
+| `/create/blog` | 블로그 글 작성 (5 크레딧) | ✅ |
+| `/create/place` | 네이버 플레이스 소식 (3 크레딧) | ✅ |
+| `/create/carrot` | 당근마켓 홍보글 (3 크레딧) | ✅ |
+| `/create/thread` | 스레드/SNS 글 (3 크레딧) | ✅ |
+| `/history` | 콘텐츠 히스토리 | ✅ |
+| `/mypage` | 마이페이지 (정보 수정, 크레딧) | ✅ |
+| `/pricing` | 요금제 페이지 | ❌ |
 
 ## 사용자 흐름
 
 ```
-회원가입 → 로그인 → 온보딩 (7단계 인터뷰) → 대시보드
+회원가입 → 로그인 → 온보딩 (7단계 인터뷰) → 대시보드 → 콘텐츠 생성
                       ↑
           센터 정보 없으면 자동 리다이렉트
 ```
 
-## 온보딩 기능 (챗봇 인터뷰)
+## 핵심 기능
 
-### 진입 조건
-- 로그인한 사용자가 `centers` 테이블에 데이터 없으면 → `/onboarding`으로 리다이렉트
-- `centers` 테이블에 데이터 있으면 → `/dashboard`로 정상 진입
+### 1. AI 콘텐츠 생성 (Gemini API)
+- **블로그 제목 생성**: 메인 키워드 기반 15개 제목 생성
+- **블로그 글 작성**: 2500자 이상 SEO 최적화 글
+- **네이버 플레이스**: 3가지 패턴 (혜택형/공감형/전문성형)
+- **당근마켓**: 친근한 지역 홍보글
+- **스레드**: 3-5개 타래 형식 SNS 글
 
-### 7단계 질문
-1. **센터 이름**: 운영 중인 센터의 이름
-2. **시작의 계기**: 시니어 케어 분야를 선택한 이유
-3. **운영 철학**: 진정한 돌봄에 대한 생각
-4. **핵심 원칙**: 절대 타협하지 않는 원칙
-5. **차별화 디테일**: 다른 센터와 다른 특별한 디테일
-6. **최종 비전**: 10년 후 센터의 모습
-7. **기타 강점**: 자랑하고 싶은 강점
+### 2. 크레딧 시스템
+- 회원가입 시 15 크레딧 지급
+- 콘텐츠 유형별 차등 소모
+- 크레딧 히스토리 추적
+- 크레딧 부족 시 모달 표시
 
-### UI 특징
-- 챗봇 대화형 인터페이스
-- 상단 진행 상태 바 (● ● ○ ○ ○ ○ ○)
-- 예시 보기 기능 (2단계부터)
-- 이전 답변이 위에 쌓이는 형태
+### 3. 온보딩 챗봇
+- 7단계 대화형 인터뷰
+- 센터 정보 자동 저장
+- AI 콘텐츠 맞춤화에 활용
 
-## 데이터 모델
+## 데이터 모델 (Supabase)
 
-### centers 테이블 (Supabase)
+### centers 테이블
 ```sql
 CREATE TABLE centers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -66,11 +73,48 @@ CREATE TABLE centers (
 );
 ```
 
+### credits 테이블
+```sql
+CREATE TABLE credits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  balance INTEGER DEFAULT 15,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### credit_history 테이블
+```sql
+CREATE TABLE credit_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  amount INTEGER NOT NULL,
+  type TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### contents 테이블
+```sql
+CREATE TABLE contents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  title TEXT,
+  content TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
 ## 기술 스택
 - **프레임워크**: Hono (Cloudflare Pages)
 - **스타일링**: TailwindCSS (CDN)
 - **아이콘**: Font Awesome
 - **인증/DB**: Supabase (Auth + Database)
+- **AI**: Google Gemini API (gemini-2.5-flash)
 
 ## 현재 상태
 
@@ -79,49 +123,18 @@ CREATE TABLE centers (
 2. 로그인/회원가입 + Supabase 연동
 3. 로그아웃 기능
 4. 라우팅 보호 (인증 미들웨어)
-5. **온보딩 챗봇 인터뷰 (7단계)**
-6. **센터 정보 Supabase 저장**
-7. **대시보드 진입 시 온보딩 체크**
-8. 반응형 디자인
+5. 온보딩 챗봇 인터뷰 (7단계)
+6. 센터 정보 Supabase 저장
+7. **AI 콘텐츠 생성 (5개 채널)**
+8. **크레딧 시스템 (차감/히스토리)**
+9. **콘텐츠 히스토리 페이지**
+10. **마이페이지 (정보 수정)**
+11. **요금제 페이지**
+12. 반응형 디자인
 
 ### ⏳ 미구현 기능
-1. 실제 AI 콘텐츠 생성 (기능 카드 클릭 시 alert만 표시)
-2. 크레딧 충전 시스템
-3. 콘텐츠 저장/불러오기
-4. 결제 시스템
-5. 소셜 로그인 (Google, 네이버)
-
-## Supabase 테이블 생성 SQL
-
-```sql
--- centers 테이블 생성
-CREATE TABLE IF NOT EXISTS centers (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  center_name TEXT NOT NULL,
-  origin_story TEXT,
-  care_philosophy TEXT,
-  core_principle TEXT,
-  unique_detail TEXT,
-  vision TEXT,
-  other_strengths TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- RLS (Row Level Security) 활성화
-ALTER TABLE centers ENABLE ROW LEVEL SECURITY;
-
--- 사용자가 자신의 센터만 조회/수정할 수 있도록
-CREATE POLICY "Users can view own center" ON centers
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own center" ON centers
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own center" ON centers
-  FOR UPDATE USING (auth.uid() = user_id);
-```
+1. 결제 시스템 (요금제 결제, 단건 충전)
+2. 소셜 로그인 (Google, 네이버)
 
 ## 개발 명령어
 
@@ -148,39 +161,91 @@ webapp/
 │   ├── renderer.tsx         # HTML 렌더러
 │   ├── lib/
 │   │   └── supabase.js      # Supabase 설정
-│   ├── components/
-│   │   ├── Header.tsx       # 공통 헤더
-│   │   └── Footer.tsx       # 공통 푸터
 │   └── pages/
 │       ├── landing.tsx      # 랜딩페이지
 │       ├── login.tsx        # 로그인
 │       ├── signup.tsx       # 회원가입
-│       ├── onboarding.tsx   # 온보딩 (NEW)
-│       └── dashboard.tsx    # 대시보드
+│       ├── onboarding.tsx   # 온보딩
+│       ├── dashboard.tsx    # 대시보드
+│       ├── history.tsx      # 히스토리
+│       ├── mypage.tsx       # 마이페이지
+│       ├── pricing.tsx      # 요금제
+│       └── create/
+│           ├── title.tsx    # 블로그 제목 생성
+│           ├── blog.tsx     # 블로그 글 작성
+│           ├── place.tsx    # 네이버 플레이스
+│           ├── carrot.tsx   # 당근마켓
+│           └── thread.tsx   # 스레드
 ├── public/
 │   └── static/
 │       ├── app.js           # 공통 JS
 │       ├── style.css        # 커스텀 CSS
-│       └── supabase-auth.js # Supabase 인증 모듈
+│       ├── supabase-auth.js # Supabase 인증 모듈
+│       └── gemini-api.js    # Gemini API 모듈
 ├── ecosystem.config.cjs     # PM2 설정
 ├── package.json
 └── wrangler.jsonc          # Cloudflare 설정
 ```
 
-## 다음 개발 단계 권장
+## Supabase 테이블 생성 SQL (전체)
 
-1. **AI 콘텐츠 생성 기능 구현**
-   - OpenAI API 연동
-   - 센터 정보 기반 맞춤 프롬프트
-   - 결과 화면 구현
+```sql
+-- centers 테이블
+CREATE TABLE IF NOT EXISTS centers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  center_name TEXT NOT NULL,
+  origin_story TEXT,
+  care_philosophy TEXT,
+  core_principle TEXT,
+  unique_detail TEXT,
+  vision TEXT,
+  other_strengths TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-2. **크레딧 시스템 구현**
-   - credits 테이블 생성
-   - 크레딧 차감/충전 로직
+-- credits 테이블
+CREATE TABLE IF NOT EXISTS credits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  balance INTEGER DEFAULT 15,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-3. **콘텐츠 저장 기능**
-   - contents 테이블 생성
-   - 생성된 콘텐츠 저장/조회
+-- credit_history 테이블
+CREATE TABLE IF NOT EXISTS credit_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  amount INTEGER NOT NULL,
+  type TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- contents 테이블
+CREATE TABLE IF NOT EXISTS contents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  title TEXT,
+  content TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS 정책
+ALTER TABLE centers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE credits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE credit_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contents ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage own data" ON centers FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can manage own data" ON credits FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can manage own data" ON credit_history FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can manage own data" ON contents FOR ALL USING (auth.uid() = user_id);
+```
 
 ---
 **Last Updated**: 2025-01-30
