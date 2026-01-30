@@ -6,7 +6,7 @@ export const DashboardPage = () => {
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex justify-between items-center h-16">
             {/* 로고 */}
-            <a href="/" class="flex items-center gap-2">
+            <a href="/dashboard" class="flex items-center gap-2">
               <div class="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
                 <i class="fas fa-pen-fancy text-white text-lg"></i>
               </div>
@@ -16,11 +16,11 @@ export const DashboardPage = () => {
             {/* 우측 메뉴 */}
             <div class="flex items-center gap-4">
               {/* 크레딧 표시 */}
-              <div class="flex items-center gap-2 bg-primary-50 px-3 py-1.5 rounded-full">
+              <a href="/pricing" class="flex items-center gap-2 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors">
                 <i class="fas fa-coins text-primary-500"></i>
                 <span class="font-semibold text-primary-700" id="headerCredits">--</span>
                 <span class="text-primary-600 text-sm">크레딧</span>
-              </div>
+              </a>
               
               {/* 사용자 드롭다운 */}
               <div class="relative" id="userDropdown">
@@ -36,11 +36,11 @@ export const DashboardPage = () => {
                 
                 {/* 드롭다운 메뉴 */}
                 <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
-                  <a href="#" onclick="alert('마이페이지는 준비 중입니다'); return false;" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <a href="/mypage" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     <i class="fas fa-user mr-2"></i>마이페이지
                   </a>
-                  <a href="#" onclick="alert('설정은 준비 중입니다'); return false;" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    <i class="fas fa-cog mr-2"></i>설정
+                  <a href="/history" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <i class="fas fa-history mr-2"></i>히스토리
                   </a>
                   <hr class="my-1 border-gray-100" />
                   <button onclick="handleLogout()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
@@ -76,10 +76,10 @@ export const DashboardPage = () => {
             <i class="fas fa-exclamation-circle text-yellow-500 mt-0.5"></i>
             <div>
               <h3 class="font-semibold text-yellow-800">센터 정보를 등록해주세요</h3>
-              <p class="text-yellow-700 text-sm mt-1">마이페이지에서 센터 정보를 등록하면 더 맞춤화된 콘텐츠를 생성할 수 있습니다.</p>
-              <button onclick="alert('마이페이지는 준비 중입니다')" class="mt-2 text-yellow-800 font-medium text-sm hover:underline">
+              <p class="text-yellow-700 text-sm mt-1">온보딩에서 센터 정보를 등록하면 더 맞춤화된 콘텐츠를 생성할 수 있습니다.</p>
+              <a href="/onboarding" class="mt-2 inline-block text-yellow-800 font-medium text-sm hover:underline">
                 센터 정보 등록하기 →
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -94,7 +94,7 @@ export const DashboardPage = () => {
                 <span class="text-primary-200">크레딧</span>
               </div>
             </div>
-            <a href="#" onclick="alert('충전 기능은 준비 중입니다'); return false;" class="inline-flex items-center justify-center gap-2 bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors">
+            <a href="/pricing" class="inline-flex items-center justify-center gap-2 bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors">
               <i class="fas fa-plus"></i>
               크레딧 충전하기
             </a>
@@ -107,7 +107,7 @@ export const DashboardPage = () => {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             
             {/* 블로그 제목 */}
-            <button onclick="alert('블로그 제목 생성 기능은 준비 중입니다')" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary-300 hover:shadow-lg transition-all text-left group">
+            <a href="/create/title" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary-300 hover:shadow-lg transition-all text-left group block">
               <div class="flex items-start justify-between mb-4">
                 <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <i class="fas fa-heading text-blue-600 text-2xl"></i>
@@ -118,11 +118,11 @@ export const DashboardPage = () => {
                 </div>
               </div>
               <h3 class="text-lg font-bold text-gray-900 mb-2">블로그 제목 생성</h3>
-              <p class="text-gray-600 text-sm">클릭을 부르는 매력적인 블로그 제목 10개를 생성합니다</p>
-            </button>
+              <p class="text-gray-600 text-sm">클릭을 부르는 매력적인 블로그 제목 15개를 생성합니다</p>
+            </a>
 
             {/* 블로그 글 */}
-            <button onclick="alert('블로그 글 작성 기능은 준비 중입니다')" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary-300 hover:shadow-lg transition-all text-left group">
+            <a href="/create/blog" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary-300 hover:shadow-lg transition-all text-left group block">
               <div class="flex items-start justify-between mb-4">
                 <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <i class="fas fa-file-alt text-green-600 text-2xl"></i>
@@ -134,10 +134,10 @@ export const DashboardPage = () => {
               </div>
               <h3 class="text-lg font-bold text-gray-900 mb-2">블로그 글 작성</h3>
               <p class="text-gray-600 text-sm">전문적이고 신뢰감 있는 블로그 포스팅을 작성합니다</p>
-            </button>
+            </a>
 
             {/* 네이버 플레이스 */}
-            <button onclick="alert('네이버 플레이스 소개글 기능은 준비 중입니다')" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary-300 hover:shadow-lg transition-all text-left group">
+            <a href="/create/place" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary-300 hover:shadow-lg transition-all text-left group block">
               <div class="flex items-start justify-between mb-4">
                 <div class="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <i class="fas fa-map-marker-alt text-emerald-600 text-2xl"></i>
@@ -149,10 +149,10 @@ export const DashboardPage = () => {
               </div>
               <h3 class="text-lg font-bold text-gray-900 mb-2">네이버 플레이스</h3>
               <p class="text-gray-600 text-sm">네이버 플레이스에 최적화된 센터 소개글을 생성합니다</p>
-            </button>
+            </a>
 
             {/* 당근마켓 */}
-            <button onclick="alert('당근마켓 홍보글 기능은 준비 중입니다')" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary-300 hover:shadow-lg transition-all text-left group">
+            <a href="/create/carrot" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary-300 hover:shadow-lg transition-all text-left group block">
               <div class="flex items-start justify-between mb-4">
                 <div class="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <i class="fas fa-carrot text-orange-600 text-2xl"></i>
@@ -164,10 +164,10 @@ export const DashboardPage = () => {
               </div>
               <h3 class="text-lg font-bold text-gray-900 mb-2">당근마켓 홍보글</h3>
               <p class="text-gray-600 text-sm">지역 주민에게 친근하게 다가가는 홍보글을 작성합니다</p>
-            </button>
+            </a>
 
             {/* 스레드/SNS */}
-            <button onclick="alert('스레드/SNS 글 기능은 준비 중입니다')" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary-300 hover:shadow-lg transition-all text-left group">
+            <a href="/create/thread" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary-300 hover:shadow-lg transition-all text-left group block">
               <div class="flex items-start justify-between mb-4">
                 <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <i class="fas fa-at text-purple-600 text-2xl"></i>
@@ -179,10 +179,10 @@ export const DashboardPage = () => {
               </div>
               <h3 class="text-lg font-bold text-gray-900 mb-2">스레드/SNS 글</h3>
               <p class="text-gray-600 text-sm">스레드, 인스타그램용 짧고 임팩트 있는 글을 생성합니다</p>
-            </button>
+            </a>
 
             {/* 요금제 업그레이드 */}
-            <a href="/#pricing" class="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl p-6 border border-primary-200 hover:border-primary-400 transition-all text-left group flex flex-col justify-center">
+            <a href="/pricing" class="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl p-6 border border-primary-200 hover:border-primary-400 transition-all text-left group flex flex-col justify-center">
               <div class="text-center">
                 <div class="w-14 h-14 bg-primary-500 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                   <i class="fas fa-crown text-white text-2xl"></i>
@@ -198,7 +198,7 @@ export const DashboardPage = () => {
         <section>
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-gray-900">최근 생성 콘텐츠</h2>
-            <a href="#" onclick="alert('전체보기는 준비 중입니다'); return false;" class="text-primary-600 hover:text-primary-700 font-medium text-sm">
+            <a href="/history" class="text-primary-600 hover:text-primary-700 font-medium text-sm">
               전체보기 <i class="fas fa-arrow-right ml-1"></i>
             </a>
           </div>
@@ -210,93 +210,17 @@ export const DashboardPage = () => {
                   <tr>
                     <th class="text-left px-6 py-4 text-sm font-semibold text-gray-600">유형</th>
                     <th class="text-left px-6 py-4 text-sm font-semibold text-gray-600">제목</th>
-                    <th class="text-left px-6 py-4 text-sm font-semibold text-gray-600">생성일</th>
+                    <th class="text-left px-6 py-4 text-sm font-semibold text-gray-600 hidden sm:table-cell">생성일</th>
                     <th class="text-left px-6 py-4 text-sm font-semibold text-gray-600">액션</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100" id="contentTableBody">
-                  {/* 목업 데이터 1 */}
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4">
-                      <span class="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                        <i class="fas fa-file-alt text-xs"></i>
-                        블로그 글
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 text-gray-900">방문요양 서비스, 어르신의 일상을 지키는 따뜻한 손길</td>
-                    <td class="px-6 py-4 text-gray-500 text-sm">2025.01.28</td>
-                    <td class="px-6 py-4">
-                      <button onclick="alert('복사되었습니다!')" class="text-primary-600 hover:text-primary-700 font-medium text-sm">
-                        <i class="fas fa-copy mr-1"></i> 복사
-                      </button>
-                    </td>
-                  </tr>
-                  
-                  {/* 목업 데이터 2 */}
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4">
-                      <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                        <i class="fas fa-heading text-xs"></i>
-                        블로그 제목
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 text-gray-900">어르신 건강관리 블로그 제목 10가지</td>
-                    <td class="px-6 py-4 text-gray-500 text-sm">2025.01.27</td>
-                    <td class="px-6 py-4">
-                      <button onclick="alert('복사되었습니다!')" class="text-primary-600 hover:text-primary-700 font-medium text-sm">
-                        <i class="fas fa-copy mr-1"></i> 복사
-                      </button>
-                    </td>
-                  </tr>
-
-                  {/* 목업 데이터 3 */}
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4">
-                      <span class="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
-                        <i class="fas fa-carrot text-xs"></i>
-                        당근마켓
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 text-gray-900">[강남구] 어르신 돌봄이 필요하신가요? 행복한 방문요양센터입니다</td>
-                    <td class="px-6 py-4 text-gray-500 text-sm">2025.01.26</td>
-                    <td class="px-6 py-4">
-                      <button onclick="alert('복사되었습니다!')" class="text-primary-600 hover:text-primary-700 font-medium text-sm">
-                        <i class="fas fa-copy mr-1"></i> 복사
-                      </button>
-                    </td>
-                  </tr>
-
-                  {/* 목업 데이터 4 */}
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4">
-                      <span class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
-                        <i class="fas fa-map-marker-alt text-xs"></i>
-                        네이버 플레이스
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 text-gray-900">행복한 방문요양센터 - 네이버 플레이스 소개글</td>
-                    <td class="px-6 py-4 text-gray-500 text-sm">2025.01.25</td>
-                    <td class="px-6 py-4">
-                      <button onclick="alert('복사되었습니다!')" class="text-primary-600 hover:text-primary-700 font-medium text-sm">
-                        <i class="fas fa-copy mr-1"></i> 복사
-                      </button>
-                    </td>
-                  </tr>
-
-                  {/* 목업 데이터 5 */}
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4">
-                      <span class="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                        <i class="fas fa-at text-xs"></i>
-                        스레드
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 text-gray-900">어르신의 미소가 우리의 보람입니다 #방문요양 #노인돌봄</td>
-                    <td class="px-6 py-4 text-gray-500 text-sm">2025.01.24</td>
-                    <td class="px-6 py-4">
-                      <button onclick="alert('복사되었습니다!')" class="text-primary-600 hover:text-primary-700 font-medium text-sm">
-                        <i class="fas fa-copy mr-1"></i> 복사
-                      </button>
+                  {/* 콘텐츠가 로드됩니다 */}
+                  <tr id="emptyContentRow">
+                    <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                      <i class="fas fa-inbox text-4xl mb-4 block text-gray-300"></i>
+                      <p>아직 생성된 콘텐츠가 없습니다.</p>
+                      <p class="text-sm mt-1">위 기능 카드를 클릭하여 첫 콘텐츠를 생성해보세요!</p>
                     </td>
                   </tr>
                 </tbody>
@@ -310,6 +234,7 @@ export const DashboardPage = () => {
       <script dangerouslySetInnerHTML={{
         __html: `
           let currentUser = null;
+          let currentCenter = null;
           let isRedirecting = false;
           
           // 드롭다운 토글
@@ -340,12 +265,90 @@ export const DashboardPage = () => {
             }
           }
 
-          // 사용자 정보 업데이트
-          function updateUserInfo(user) {
+          // 콘텐츠 유형별 스타일
+          const contentTypeStyles = {
+            'title': { icon: 'fa-heading', bg: 'bg-blue-100', text: 'text-blue-700', label: '블로그 제목' },
+            'blog': { icon: 'fa-file-alt', bg: 'bg-green-100', text: 'text-green-700', label: '블로그 글' },
+            'place': { icon: 'fa-map-marker-alt', bg: 'bg-emerald-100', text: 'text-emerald-700', label: '네이버 플레이스' },
+            'carrot': { icon: 'fa-carrot', bg: 'bg-orange-100', text: 'text-orange-700', label: '당근마켓' },
+            'thread': { icon: 'fa-at', bg: 'bg-purple-100', text: 'text-purple-700', label: '스레드' }
+          };
+
+          // 날짜 포맷
+          function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\\. /g, '.').replace(/\\.$/, '');
+          }
+
+          // 최근 콘텐츠 로드
+          async function loadRecentContents(userId) {
+            try {
+              const contents = await SupabaseAuth.getRecentContents(userId, 5);
+              const tbody = document.getElementById('contentTableBody');
+              const emptyRow = document.getElementById('emptyContentRow');
+              
+              if (!contents || contents.length === 0) {
+                if (emptyRow) emptyRow.style.display = '';
+                return;
+              }
+              
+              if (emptyRow) emptyRow.style.display = 'none';
+              
+              contents.forEach(content => {
+                const style = contentTypeStyles[content.type] || contentTypeStyles['blog'];
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                row.innerHTML = \`
+                  <td class="px-6 py-4">
+                    <span class="inline-flex items-center gap-2 px-3 py-1 \${style.bg} \${style.text} rounded-full text-sm font-medium">
+                      <i class="fas \${style.icon} text-xs"></i>
+                      \${style.label}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-gray-900 max-w-xs truncate">\${content.title || '제목 없음'}</td>
+                  <td class="px-6 py-4 text-gray-500 text-sm hidden sm:table-cell">\${formatDate(content.created_at)}</td>
+                  <td class="px-6 py-4">
+                    <button onclick="copyContent('\${content.id}')" class="text-primary-600 hover:text-primary-700 font-medium text-sm">
+                      <i class="fas fa-copy mr-1"></i> 복사
+                    </button>
+                  </td>
+                \`;
+                row.dataset.content = content.content;
+                tbody.appendChild(row);
+              });
+            } catch (error) {
+              console.error('Failed to load contents:', error);
+            }
+          }
+
+          // 콘텐츠 복사
+          async function copyContent(contentId) {
+            const rows = document.querySelectorAll('#contentTableBody tr');
+            for (const row of rows) {
+              if (row.dataset && row.dataset.content) {
+                await SupabaseAuth.copyToClipboard(row.dataset.content);
+                return;
+              }
+            }
+            // 직접 Supabase에서 가져오기
+            try {
+              const contents = await SupabaseAuth.getContents(currentUser?.id);
+              const content = contents.find(c => c.id === contentId);
+              if (content) {
+                await SupabaseAuth.copyToClipboard(content.content);
+              }
+            } catch (e) {
+              SupabaseAuth.showToast('복사에 실패했습니다', 'error');
+            }
+          }
+
+          // 사용자 및 센터 정보 업데이트
+          async function updateUserInfo(user, center) {
             const userInfo = SupabaseAuth.formatUserInfo(user);
             if (!userInfo) return;
             
             currentUser = userInfo;
+            currentCenter = center;
             
             // 이름 업데이트
             const nameEl = document.getElementById('headerUserName');
@@ -356,8 +359,8 @@ export const DashboardPage = () => {
             const greetingSubtext = document.getElementById('greetingSubtext');
             const centerAlert = document.getElementById('centerAlert');
             
-            if (userInfo.centerName) {
-              if (centerEl) centerEl.textContent = userInfo.centerName;
+            if (center && center.center_name) {
+              if (centerEl) centerEl.textContent = center.center_name;
               if (centerAlert) centerAlert.classList.add('hidden');
             } else {
               if (centerEl) centerEl.textContent = userInfo.name + '님의';
@@ -365,11 +368,16 @@ export const DashboardPage = () => {
               if (centerAlert) centerAlert.classList.remove('hidden');
             }
             
-            // 크레딧 업데이트
-            const creditEl = document.getElementById('creditBalance');
-            const headerCreditEl = document.getElementById('headerCredits');
-            if (creditEl) creditEl.textContent = userInfo.credits;
-            if (headerCreditEl) headerCreditEl.textContent = userInfo.credits;
+            // 크레딧 업데이트 - credits 테이블에서 가져오기
+            try {
+              const credits = await SupabaseAuth.getUserCredits(user.id);
+              const creditEl = document.getElementById('creditBalance');
+              const headerCreditEl = document.getElementById('headerCredits');
+              if (creditEl) creditEl.textContent = credits;
+              if (headerCreditEl) headerCreditEl.textContent = credits;
+            } catch (e) {
+              console.error('Failed to load credits:', e);
+            }
           }
           
           // 로딩 오버레이 숨기기
@@ -414,17 +422,10 @@ export const DashboardPage = () => {
               }
               
               // 사용자 정보 로드 (센터 정보 포함)
-              if (session.user) {
-                // 센터 정보가 있으면 user_metadata 대신 centers 테이블에서 센터명 사용
-                const userWithCenter = {
-                  ...session.user,
-                  user_metadata: {
-                    ...session.user.user_metadata,
-                    center_name: center.center_name
-                  }
-                };
-                updateUserInfo(userWithCenter);
-              }
+              await updateUserInfo(session.user, center);
+              
+              // 최근 콘텐츠 로드
+              await loadRecentContents(session.user.id);
               
               // 로딩 오버레이 숨기기
               hideLoading();
@@ -445,10 +446,6 @@ export const DashboardPage = () => {
             if (event === 'SIGNED_OUT') {
               isRedirecting = true;
               window.location.href = '/login';
-            } else if (event === 'SIGNED_IN' && session?.user) {
-              updateUserInfo(session.user);
-            } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-              updateUserInfo(session.user);
             }
           });
         `

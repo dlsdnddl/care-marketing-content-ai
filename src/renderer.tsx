@@ -41,6 +41,8 @@ export const renderer = jsxRenderer(({ children }) => {
         {children}
         {/* Supabase 인증 모듈 */}
         <script src="/static/supabase-auth.js"></script>
+        {/* Gemini API 모듈 */}
+        <script src="/static/gemini-api.js"></script>
         <script src="/static/app.js"></script>
       </body>
     </html>

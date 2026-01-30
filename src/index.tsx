@@ -5,6 +5,14 @@ import { LoginPage } from './pages/login'
 import { SignupPage } from './pages/signup'
 import { DashboardPage } from './pages/dashboard'
 import { OnboardingPage } from './pages/onboarding'
+import { CreateTitlePage } from './pages/create/title'
+import { CreateBlogPage } from './pages/create/blog'
+import { CreatePlacePage } from './pages/create/place'
+import { CreateCarrotPage } from './pages/create/carrot'
+import { CreateThreadPage } from './pages/create/thread'
+import { HistoryPage } from './pages/history'
+import { MyPage } from './pages/mypage'
+import { PricingPage } from './pages/pricing'
 
 const app = new Hono()
 
@@ -33,6 +41,42 @@ app.get('/onboarding', (c) => {
 // 대시보드 페이지
 app.get('/dashboard', (c) => {
   return c.render(<DashboardPage />)
+})
+
+// 콘텐츠 생성 페이지들
+app.get('/create/title', (c) => {
+  return c.render(<CreateTitlePage />)
+})
+
+app.get('/create/blog', (c) => {
+  return c.render(<CreateBlogPage />)
+})
+
+app.get('/create/place', (c) => {
+  return c.render(<CreatePlacePage />)
+})
+
+app.get('/create/carrot', (c) => {
+  return c.render(<CreateCarrotPage />)
+})
+
+app.get('/create/thread', (c) => {
+  return c.render(<CreateThreadPage />)
+})
+
+// 히스토리 페이지
+app.get('/history', (c) => {
+  return c.render(<HistoryPage />)
+})
+
+// 마이페이지
+app.get('/mypage', (c) => {
+  return c.render(<MyPage />)
+})
+
+// 요금제 페이지
+app.get('/pricing', (c) => {
+  return c.render(<PricingPage />)
 })
 
 // API 엔드포인트 (목업)
