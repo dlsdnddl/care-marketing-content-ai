@@ -224,7 +224,9 @@ export const CreateBlogPage = () => {
 
             try {
               // Gemini API 호출
+              console.log('Calling Gemini API for blog...');
               const blog = await GeminiAPI.generateBlogPost(blogTitle, seoKeyword, businessName, centerInfo);
+              console.log('API response received');
               
               if (!blog) {
                 throw new Error('블로그 글 생성에 실패했습니다');
@@ -232,20 +234,22 @@ export const CreateBlogPage = () => {
 
               generatedBlog = blog;
 
-              // 크레딧 차감
-              await SupabaseAuth.deductCredits(5, 'blog', '블로그 글 작성: ' + blogTitle);
-
-              // 콘텐츠 저장
-              await SupabaseAuth.saveContent({
-                type: 'blog',
-                title: blogTitle,
-                content: blog,
-                metadata: { seoKeyword, businessName }
-              });
-
-              // 결과 표시
+              // 결과 표시 먼저 (사용자가 결과 확인 가능하도록)
               displayBlog(blog);
               document.getElementById('resultArea').classList.remove('hidden');
+
+              // 크레딧 차감 및 콘텐츠 저장 (생성 성공 후)
+              try {
+                await SupabaseAuth.deductCredits(5, 'blog', '블로그 글 작성: ' + blogTitle);
+                await SupabaseAuth.saveContent({
+                  type: 'blog',
+                  title: blogTitle,
+                  content: blog,
+                  metadata: { seoKeyword, businessName }
+                });
+              } catch (saveError) {
+                console.error('Save error (content already displayed):', saveError);
+              }
               
               SupabaseAuth.showToast('블로그 글이 생성되었습니다!', 'success');
 
@@ -255,7 +259,7 @@ export const CreateBlogPage = () => {
                 document.getElementById('modalCreditBalance').textContent = userCredits;
                 document.getElementById('creditModal').classList.remove('hidden');
               } else {
-                SupabaseAuth.showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error');
+                SupabaseAuth.showToast('오류: ' + (error.message || '다시 시도해주세요.'), 'error');
               }
             } finally {
               document.getElementById('loadingOverlay').classList.add('hidden');

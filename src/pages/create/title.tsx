@@ -182,7 +182,9 @@ export const CreateTitlePage = () => {
 
             try {
               // Gemini API 호출
+              console.log('Calling Gemini API...');
               const titles = await GeminiAPI.generateBlogTitles(mainKeyword, topicHint, region);
+              console.log('API response:', titles);
               
               if (!titles || titles.length === 0) {
                 throw new Error('제목 생성에 실패했습니다');
@@ -190,20 +192,22 @@ export const CreateTitlePage = () => {
 
               generatedTitles = titles;
 
-              // 크레딧 차감
-              await SupabaseAuth.deductCredits(1, 'title', '블로그 제목 생성: ' + mainKeyword);
-
-              // 콘텐츠 저장
-              await SupabaseAuth.saveContent({
-                type: 'title',
-                title: '블로그 제목 생성: ' + mainKeyword,
-                content: titles.join('\\n'),
-                metadata: { mainKeyword, topicHint, region }
-              });
-
-              // 결과 표시
+              // 결과 표시 먼저 (사용자가 결과 확인 가능하도록)
               displayTitles(titles);
               document.getElementById('resultArea').classList.remove('hidden');
+
+              // 크레딧 차감 및 콘텐츠 저장 (생성 성공 후)
+              try {
+                await SupabaseAuth.deductCredits(1, 'title', '블로그 제목 생성: ' + mainKeyword);
+                await SupabaseAuth.saveContent({
+                  type: 'title',
+                  title: '블로그 제목 생성: ' + mainKeyword,
+                  content: titles.join('\\n'),
+                  metadata: { mainKeyword, topicHint, region }
+                });
+              } catch (saveError) {
+                console.error('Save error (content already displayed):', saveError);
+              }
               
               SupabaseAuth.showToast('제목이 생성되었습니다!', 'success');
 
@@ -213,7 +217,7 @@ export const CreateTitlePage = () => {
                 document.getElementById('modalCreditBalance').textContent = userCredits;
                 document.getElementById('creditModal').classList.remove('hidden');
               } else {
-                SupabaseAuth.showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error');
+                SupabaseAuth.showToast('오류: ' + (error.message || '다시 시도해주세요.'), 'error');
               }
             } finally {
               document.getElementById('loadingOverlay').classList.add('hidden');

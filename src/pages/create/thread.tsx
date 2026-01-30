@@ -186,7 +186,10 @@ export const CreateThreadPage = () => {
             document.getElementById('generateBtn').disabled = true;
 
             try {
+              // 1. Gemini API 호출
+              console.log('Calling Gemini API for threads...');
               const threads = await GeminiAPI.generateThreads(sourceContent, strategy, centerInfo);
+              console.log('API response received');
               
               if (!threads || threads.length === 0) {
                 throw new Error('스레드 생성에 실패했습니다');
@@ -194,17 +197,22 @@ export const CreateThreadPage = () => {
 
               generatedThreads = threads;
 
-              await SupabaseAuth.deductCredits(3, 'thread', '스레드 타래 생성');
-
-              await SupabaseAuth.saveContent({
-                type: 'thread',
-                title: '스레드 타래 (' + threads.length + '개)',
-                content: threads.join('\\n\\n---\\n\\n'),
-                metadata: { strategy, threadCount: threads.length }
-              });
-
+              // 2. 결과 표시 먼저 (사용자가 결과 확인 가능하도록)
               displayThreads(threads);
               document.getElementById('resultArea').classList.remove('hidden');
+
+              // 3. 크레딧 차감 및 콘텐츠 저장 (생성 성공 후)
+              try {
+                await SupabaseAuth.deductCredits(3, 'thread', '스레드 타래 생성');
+                await SupabaseAuth.saveContent({
+                  type: 'thread',
+                  title: '스레드 타래 (' + threads.length + '개)',
+                  content: threads.join('\\n\\n---\\n\\n'),
+                  metadata: { strategy, threadCount: threads.length }
+                });
+              } catch (saveError) {
+                console.error('Save error (content already displayed):', saveError);
+              }
               
               SupabaseAuth.showToast('스레드가 생성되었습니다!', 'success');
 
@@ -214,7 +222,7 @@ export const CreateThreadPage = () => {
                 document.getElementById('modalCreditBalance').textContent = userCredits;
                 document.getElementById('creditModal').classList.remove('hidden');
               } else {
-                SupabaseAuth.showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error');
+                SupabaseAuth.showToast('오류: ' + (error.message || '다시 시도해주세요.'), 'error');
               }
             } finally {
               document.getElementById('loadingOverlay').classList.add('hidden');

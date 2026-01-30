@@ -237,7 +237,10 @@ export const CreatePlacePage = () => {
             document.getElementById('generateBtn').disabled = true;
 
             try {
+              // 1. Gemini API 호출
+              console.log('Calling Gemini API for place news...');
               const result = await GeminiAPI.generatePlaceNews(businessName, region, sourceContent, pattern, centerInfo);
+              console.log('API response received');
               
               if (!result || !result.title || !result.body) {
                 throw new Error('소식 생성에 실패했습니다');
@@ -246,18 +249,23 @@ export const CreatePlacePage = () => {
               generatedTitle = result.title;
               generatedBody = result.body;
 
-              await SupabaseAuth.deductCredits(3, 'place', '네이버 플레이스: ' + businessName);
-
-              await SupabaseAuth.saveContent({
-                type: 'place',
-                title: result.title,
-                content: result.title + '\\n\\n' + result.body,
-                metadata: { businessName, region, pattern }
-              });
-
+              // 2. 결과 표시 먼저 (사용자가 결과 확인 가능하도록)
               document.getElementById('resultTitle').textContent = result.title;
               document.getElementById('resultBody').textContent = result.body;
               document.getElementById('resultArea').classList.remove('hidden');
+
+              // 3. 크레딧 차감 및 콘텐츠 저장 (생성 성공 후)
+              try {
+                await SupabaseAuth.deductCredits(3, 'place', '네이버 플레이스: ' + businessName);
+                await SupabaseAuth.saveContent({
+                  type: 'place',
+                  title: result.title,
+                  content: result.title + '\\n\\n' + result.body,
+                  metadata: { businessName, region, pattern }
+                });
+              } catch (saveError) {
+                console.error('Save error (content already displayed):', saveError);
+              }
               
               SupabaseAuth.showToast('플레이스 소식이 생성되었습니다!', 'success');
 
@@ -267,7 +275,7 @@ export const CreatePlacePage = () => {
                 document.getElementById('modalCreditBalance').textContent = userCredits;
                 document.getElementById('creditModal').classList.remove('hidden');
               } else {
-                SupabaseAuth.showToast('오류가 발생했습니다. 다시 시도해주세요.', 'error');
+                SupabaseAuth.showToast('오류: ' + (error.message || '다시 시도해주세요.'), 'error');
               }
             } finally {
               document.getElementById('loadingOverlay').classList.add('hidden');
