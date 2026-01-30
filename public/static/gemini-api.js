@@ -1,46 +1,112 @@
 // Gemini API 호출 모듈
 const GEMINI_API_KEY = 'AIzaSyD8fQqvZp1_jLvXM3uW0Nqu_IArcnh4lLY';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
-// Gemini API 호출
-async function callGemini(prompt) {
-  try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.9,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 8192
+// 사용 가능한 모델 목록 (우선순위 순)
+const GEMINI_MODELS = [
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+  'gemini-1.5-flash-8b'
+];
+
+// 현재 사용 중인 모델 인덱스
+let currentModelIndex = 0;
+
+// API URL 생성
+function getApiUrl(modelName) {
+  return `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+}
+
+// 딜레이 함수
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Gemini API 호출 (재시도 및 모델 fallback 포함)
+async function callGemini(prompt, maxRetries = 3) {
+  let lastError = null;
+  
+  // 각 모델에 대해 시도
+  for (let modelIdx = currentModelIndex; modelIdx < GEMINI_MODELS.length; modelIdx++) {
+    const modelName = GEMINI_MODELS[modelIdx];
+    const apiUrl = getApiUrl(modelName);
+    
+    // 각 모델에 대해 재시도
+    for (let retry = 0; retry < maxRetries; retry++) {
+      try {
+        console.log(`Trying ${modelName} (attempt ${retry + 1}/${maxRetries})...`);
+        
+        const response = await fetch(`${apiUrl}?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: prompt
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.9,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 8192
+            }
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+            // 성공한 모델 인덱스 저장 (다음 호출에서 우선 사용)
+            currentModelIndex = modelIdx;
+            console.log(`Success with ${modelName}`);
+            return data.candidates[0].content.parts[0].text;
+          }
+          
+          throw new Error('응답 형식 오류');
         }
-      })
-    });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || 'API 호출 실패');
+        // 에러 응답 처리
+        const errorData = await response.json();
+        const errorMessage = errorData.error?.message || 'API 호출 실패';
+        
+        // 429 (Rate Limit) 또는 503 (Service Unavailable) 오류
+        if (response.status === 429 || response.status === 503) {
+          console.warn(`${modelName}: Rate limit or service unavailable (${response.status})`);
+          
+          // 마지막 재시도가 아니면 대기 후 재시도
+          if (retry < maxRetries - 1) {
+            const waitTime = Math.min(1000 * Math.pow(2, retry), 10000); // 최대 10초
+            console.log(`Waiting ${waitTime}ms before retry...`);
+            await delay(waitTime);
+            continue;
+          }
+          
+          // 마지막 재시도면 다음 모델로
+          lastError = new Error(`${modelName}: ${errorMessage}`);
+          break;
+        }
+        
+        // 다른 에러는 바로 throw
+        throw new Error(errorMessage);
+        
+      } catch (error) {
+        console.error(`${modelName} error:`, error);
+        lastError = error;
+        
+        // 네트워크 에러 등은 재시도
+        if (retry < maxRetries - 1) {
+          await delay(1000);
+          continue;
+        }
+      }
     }
-
-    const data = await response.json();
-    
-    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-      return data.candidates[0].content.parts[0].text;
-    }
-    
-    throw new Error('응답 형식 오류');
-  } catch (error) {
-    console.error('Gemini API error:', error);
-    throw error;
   }
+  
+  // 모든 모델 실패
+  throw lastError || new Error('모든 AI 모델이 현재 사용 불가합니다. 잠시 후 다시 시도해주세요.');
 }
 
 // ============================================
@@ -279,4 +345,4 @@ window.GeminiAPI = {
   generateThreads
 };
 
-console.log('Gemini API module loaded');
+console.log('Gemini API module loaded (with retry & fallback)');

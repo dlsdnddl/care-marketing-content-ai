@@ -70,16 +70,40 @@ export const DashboardPage = () => {
           <p class="text-gray-600 mt-1" id="greetingSubtext">오늘도 효과적인 마케팅 콘텐츠를 만들어보세요.</p>
         </div>
 
-        {/* 센터 등록 알림 (센터명이 없는 경우) */}
-        <div id="centerAlert" class="hidden bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8">
-          <div class="flex items-start gap-3">
-            <i class="fas fa-exclamation-circle text-yellow-500 mt-0.5"></i>
-            <div>
-              <h3 class="font-semibold text-yellow-800">센터 정보를 등록해주세요</h3>
-              <p class="text-yellow-700 text-sm mt-1">온보딩에서 센터 정보를 등록하면 더 맞춤화된 콘텐츠를 생성할 수 있습니다.</p>
-              <a href="/onboarding" class="mt-2 inline-block text-yellow-800 font-medium text-sm hover:underline">
-                센터 정보 등록하기 →
-              </a>
+        {/* AI 인터뷰 추천 카드 (센터 정보가 없는 경우) */}
+        <div id="centerAlert" class="hidden mb-8">
+          <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-1">
+            <div class="bg-white rounded-xl p-6">
+              <div class="flex flex-col md:flex-row md:items-center gap-6">
+                <div class="flex-shrink-0">
+                  <div class="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center">
+                    <i class="fas fa-robot text-3xl text-indigo-600"></i>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">추천</span>
+                    <h3 class="text-lg font-bold text-gray-900">AI 인터뷰로 최고 품질의 콘텐츠를 만들어보세요!</h3>
+                  </div>
+                  <p class="text-gray-600 text-sm mb-3">
+                    AI가 원장님과 7단계 인터뷰를 통해 센터의 핵심 가치와 차별화 포인트를 파악합니다.
+                    이 정보를 바탕으로 <strong class="text-indigo-600">원장님만의 맞춤형 콘텐츠</strong>를 생성합니다.
+                  </p>
+                  <ul class="flex flex-wrap gap-3 text-xs text-gray-500">
+                    <li class="flex items-center gap-1"><i class="fas fa-check text-green-500"></i> 센터 스토리 반영</li>
+                    <li class="flex items-center gap-1"><i class="fas fa-check text-green-500"></i> 운영 철학 녹여내기</li>
+                    <li class="flex items-center gap-1"><i class="fas fa-check text-green-500"></i> 차별화 포인트 강조</li>
+                    <li class="flex items-center gap-1"><i class="fas fa-check text-green-500"></i> 더 자연스러운 문체</li>
+                  </ul>
+                </div>
+                <div class="flex-shrink-0">
+                  <a href="/onboarding" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold rounded-xl hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg hover:shadow-xl">
+                    <i class="fas fa-magic"></i>
+                    AI 인터뷰 시작하기
+                  </a>
+                  <p class="text-center text-xs text-gray-400 mt-2">약 3분 소요</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -413,13 +437,8 @@ export const DashboardPage = () => {
                 return;
               }
               
-              // 온보딩 체크 - 센터 정보가 없으면 온보딩으로 리다이렉트
+              // 센터 정보 로드 (없어도 대시보드 사용 가능)
               const center = await SupabaseAuth.getUserCenter(session.user.id);
-              if (!center) {
-                console.log('No center found, redirecting to onboarding');
-                window.location.href = '/onboarding';
-                return;
-              }
               
               // 사용자 정보 로드 (센터 정보 포함)
               await updateUserInfo(session.user, center);
