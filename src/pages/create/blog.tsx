@@ -93,10 +93,10 @@ export const CreateBlogPage = () => {
               <input 
                 type="text" 
                 id="businessName"
-                placeholder="센터 이름이 자동으로 입력됩니다"
-                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-gray-50"
-                readonly
+                placeholder="센터 이름을 입력하세요"
+                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
               />
+              <p class="text-xs text-gray-400 mt-1">* 센터 정보가 있으면 자동으로 입력됩니다. 수정 가능합니다.</p>
             </div>
 
             {/* 생성 버튼 */}
@@ -296,8 +296,13 @@ export const CreateBlogPage = () => {
 
           // 채널 변환
           function convertToChannel(channel) {
-            const content = encodeURIComponent(generatedBlog);
-            window.location.href = '/create/' + channel + '?content=' + content;
+            if (!generatedBlog) {
+              SupabaseAuth.showToast('변환할 블로그 글이 없습니다', 'error');
+              return;
+            }
+            // 긴 콘텐츠는 sessionStorage에 저장
+            sessionStorage.setItem('blogContent', generatedBlog);
+            window.location.href = '/create/' + channel + '?fromBlog=true';
           }
 
           // 페이지 로드 시

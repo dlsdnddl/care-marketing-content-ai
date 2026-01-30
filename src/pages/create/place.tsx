@@ -65,10 +65,10 @@ export const CreatePlacePage = () => {
               <input 
                 type="text" 
                 id="businessName"
-                placeholder="센터 이름이 자동으로 입력됩니다"
-                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-gray-50"
-                readonly
+                placeholder="센터 이름을 입력하세요"
+                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
               />
+              <p class="text-xs text-gray-400 mt-1">* 센터 정보가 있으면 자동으로 입력됩니다. 수정 가능합니다.</p>
             </div>
 
             {/* 지역 */}
@@ -316,10 +316,13 @@ export const CreatePlacePage = () => {
                 document.getElementById('businessName').value = centerInfo.center_name;
               }
               
+              // 블로그에서 변환 시 sessionStorage에서 가져오기
               const urlParams = new URLSearchParams(window.location.search);
-              const content = urlParams.get('content');
-              if (content) {
-                document.getElementById('sourceContent').value = decodeURIComponent(content);
+              if (urlParams.get('fromBlog') === 'true') {
+                const blogContent = sessionStorage.getItem('blogContent');
+                if (blogContent) {
+                  document.getElementById('sourceContent').value = blogContent;
+                }
               }
             } catch (error) {
               console.error('Page init error:', error);

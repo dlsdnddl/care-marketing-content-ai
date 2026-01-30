@@ -280,10 +280,13 @@ export const CreateThreadPage = () => {
               
               centerInfo = await SupabaseAuth.getUserCenter(session.user.id);
               
+              // 블로그에서 변환 시 sessionStorage에서 가져오기
               const urlParams = new URLSearchParams(window.location.search);
-              const content = urlParams.get('content');
-              if (content) {
-                document.getElementById('sourceContent').value = decodeURIComponent(content);
+              if (urlParams.get('fromBlog') === 'true') {
+                const blogContent = sessionStorage.getItem('blogContent');
+                if (blogContent) {
+                  document.getElementById('sourceContent').value = blogContent;
+                }
               }
             } catch (error) {
               console.error('Page init error:', error);
