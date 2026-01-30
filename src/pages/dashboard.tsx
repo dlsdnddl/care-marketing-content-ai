@@ -310,6 +310,7 @@ export const DashboardPage = () => {
       <script dangerouslySetInnerHTML={{
         __html: `
           let currentUser = null;
+          let isRedirecting = false;
           
           // 드롭다운 토글
           function toggleDropdown() {
@@ -329,10 +330,12 @@ export const DashboardPage = () => {
           // 로그아웃 처리
           async function handleLogout() {
             try {
+              isRedirecting = true;
               await SupabaseAuth.signOut();
               window.location.href = '/';
             } catch (error) {
               console.error('Logout error:', error);
+              isRedirecting = false;
               alert('로그아웃 중 오류가 발생했습니다.');
             }
           }
@@ -368,30 +371,47 @@ export const DashboardPage = () => {
             if (creditEl) creditEl.textContent = userInfo.credits;
             if (headerCreditEl) headerCreditEl.textContent = userInfo.credits;
           }
+          
+          // 로딩 오버레이 숨기기
+          function hideLoading() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+              loadingOverlay.style.transition = 'opacity 0.3s';
+              loadingOverlay.style.opacity = '0';
+              setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+              }, 300);
+            }
+          }
 
           // 페이지 로드 시 실행
           document.addEventListener('DOMContentLoaded', async function() {
             try {
-              await SupabaseAuth.init();
+              // Supabase 초기화 및 세션 복원 대기
+              const client = await SupabaseAuth.init();
               
-              // 인증 확인
-              const isAuthenticated = await SupabaseAuth.requireAuth('/login');
-              if (!isAuthenticated) return;
+              if (!client) {
+                console.error('Failed to initialize Supabase');
+                window.location.href = '/login';
+                return;
+              }
+              
+              // 세션 확인
+              const session = await SupabaseAuth.getSession();
+              
+              if (!session) {
+                console.log('No session found, redirecting to login');
+                window.location.href = '/login';
+                return;
+              }
               
               // 사용자 정보 로드
-              const user = await SupabaseAuth.getCurrentUser();
-              if (user) {
-                updateUserInfo(user);
+              if (session.user) {
+                updateUserInfo(session.user);
               }
               
               // 로딩 오버레이 숨기기
-              const loadingOverlay = document.getElementById('loadingOverlay');
-              if (loadingOverlay) {
-                loadingOverlay.style.opacity = '0';
-                setTimeout(() => {
-                  loadingOverlay.style.display = 'none';
-                }, 300);
-              }
+              hideLoading();
               
             } catch (error) {
               console.error('Dashboard init error:', error);
@@ -401,9 +421,17 @@ export const DashboardPage = () => {
           
           // 인증 상태 변경 감지
           SupabaseAuth.onAuthStateChange((event, session) => {
+            console.log('Auth state changed:', event);
+            
+            // 이미 리다이렉트 중이면 무시
+            if (isRedirecting) return;
+            
             if (event === 'SIGNED_OUT') {
+              isRedirecting = true;
               window.location.href = '/login';
             } else if (event === 'SIGNED_IN' && session?.user) {
+              updateUserInfo(session.user);
+            } else if (event === 'TOKEN_REFRESHED' && session?.user) {
               updateUserInfo(session.user);
             }
           });

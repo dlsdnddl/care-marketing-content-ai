@@ -4,18 +4,52 @@ const SUPABASE_ANON_KEY = 'sb_publishable_fcOuA9Jev0CyUPUHzUcb6g_Jkvs02aj';
 
 // Supabase 클라이언트 초기화
 let supabaseClient = null;
+let authInitialized = false;
+let authInitPromise = null;
 
 async function initSupabase() {
-  if (supabaseClient) return supabaseClient;
+  if (supabaseClient && authInitialized) return supabaseClient;
   
-  // Supabase JS 라이브러리가 로드될 때까지 대기
-  if (typeof supabase === 'undefined') {
-    console.error('Supabase library not loaded');
-    return null;
-  }
+  // 이미 초기화 중이면 완료될 때까지 대기
+  if (authInitPromise) return authInitPromise;
   
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  return supabaseClient;
+  authInitPromise = new Promise(async (resolve) => {
+    // Supabase JS 라이브러리가 로드될 때까지 대기
+    if (typeof supabase === 'undefined') {
+      console.error('Supabase library not loaded');
+      resolve(null);
+      return;
+    }
+    
+    if (!supabaseClient) {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      });
+    }
+    
+    // 세션 복원을 기다림 - onAuthStateChange의 INITIAL_SESSION 이벤트 대기
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (event === 'INITIAL_SESSION') {
+        authInitialized = true;
+        subscription.unsubscribe();
+        resolve(supabaseClient);
+      }
+    });
+    
+    // 타임아웃 설정 (3초 후에는 어쨌든 진행)
+    setTimeout(() => {
+      if (!authInitialized) {
+        authInitialized = true;
+        resolve(supabaseClient);
+      }
+    }, 3000);
+  });
+  
+  return authInitPromise;
 }
 
 // 회원가입
@@ -61,8 +95,6 @@ async function signOut() {
   const { error } = await client.auth.signOut();
   if (error) throw error;
   
-  // 로컬 스토리지 정리
-  localStorage.removeItem('user');
   return true;
 }
 
@@ -84,6 +116,13 @@ async function getCurrentUser() {
   const client = await initSupabase();
   if (!client) return null;
   
+  // 먼저 세션에서 사용자 가져오기 시도 (더 빠름)
+  const session = await getSession();
+  if (session?.user) {
+    return session.user;
+  }
+  
+  // 세션이 없으면 getUser 호출
   const { data: { user }, error } = await client.auth.getUser();
   if (error) {
     console.error('User error:', error);
@@ -122,7 +161,10 @@ function onAuthStateChange(callback) {
   initSupabase().then(client => {
     if (client) {
       client.auth.onAuthStateChange((event, session) => {
-        callback(event, session);
+        // INITIAL_SESSION은 초기화 시에만 발생하므로 제외
+        if (event !== 'INITIAL_SESSION') {
+          callback(event, session);
+        }
       });
     }
   });
@@ -134,24 +176,41 @@ async function isLoggedIn() {
   return !!session;
 }
 
-// 인증 필요 페이지 보호
+// 인증 필요 페이지 보호 - 개선된 버전
 async function requireAuth(redirectUrl = '/login') {
-  const loggedIn = await isLoggedIn();
-  if (!loggedIn) {
+  try {
+    const session = await getSession();
+    
+    if (!session) {
+      console.log('No session found, redirecting to login');
+      window.location.href = redirectUrl;
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Auth check error:', error);
     window.location.href = redirectUrl;
     return false;
   }
-  return true;
 }
 
 // 이미 로그인된 경우 리다이렉트
 async function redirectIfLoggedIn(redirectUrl = '/dashboard') {
-  const loggedIn = await isLoggedIn();
-  if (loggedIn) {
-    window.location.href = redirectUrl;
-    return true;
+  try {
+    const session = await getSession();
+    
+    if (session) {
+      console.log('Session found, redirecting to dashboard');
+      window.location.href = redirectUrl;
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Auth check error:', error);
+    return false;
   }
-  return false;
 }
 
 // 사용자 정보 포맷팅
