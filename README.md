@@ -15,82 +15,128 @@
 | `/` | 랜딩페이지 (서비스 소개, 요금제) | ❌ |
 | `/login` | 로그인 페이지 | ❌ |
 | `/signup` | 회원가입 페이지 | ❌ |
+| `/onboarding` | 센터 정보 등록 (챗봇 인터뷰) | ✅ |
 | `/dashboard` | 대시보드 (콘텐츠 생성) | ✅ |
 
-## 인증 기능 (Supabase)
+## 사용자 흐름
 
-### 회원가입 (`/signup`)
-- 이메일, 비밀번호, 센터명, 원장님 성함 입력
-- Supabase Auth로 회원가입
-- user_metadata에 name, center_name, credits(15) 저장
-- 회원가입 완료 시 대시보드로 이동
+```
+회원가입 → 로그인 → 온보딩 (7단계 인터뷰) → 대시보드
+                      ↑
+          센터 정보 없으면 자동 리다이렉트
+```
 
-### 로그인 (`/login`)
-- 이메일, 비밀번호 입력
-- Supabase Auth 인증
-- 로그인 성공 시 대시보드로 리다이렉트
-- 이미 로그인된 상태에서 접근 시 대시보드로 리다이렉트
+## 온보딩 기능 (챗봇 인터뷰)
 
-### 로그아웃
-- 대시보드 헤더의 사용자 드롭다운에서 로그아웃
-- 세션 종료 후 랜딩페이지로 이동
+### 진입 조건
+- 로그인한 사용자가 `centers` 테이블에 데이터 없으면 → `/onboarding`으로 리다이렉트
+- `centers` 테이블에 데이터 있으면 → `/dashboard`로 정상 진입
 
-### 라우팅 보호
-- `/dashboard`는 로그인한 사용자만 접근 가능
-- 비로그인 상태로 대시보드 접근 시 `/login`으로 리다이렉트
-- 인증 상태 변경 감지 및 자동 리다이렉트
+### 7단계 질문
+1. **센터 이름**: 운영 중인 센터의 이름
+2. **시작의 계기**: 시니어 케어 분야를 선택한 이유
+3. **운영 철학**: 진정한 돌봄에 대한 생각
+4. **핵심 원칙**: 절대 타협하지 않는 원칙
+5. **차별화 디테일**: 다른 센터와 다른 특별한 디테일
+6. **최종 비전**: 10년 후 센터의 모습
+7. **기타 강점**: 자랑하고 싶은 강점
+
+### UI 특징
+- 챗봇 대화형 인터페이스
+- 상단 진행 상태 바 (● ● ○ ○ ○ ○ ○)
+- 예시 보기 기능 (2단계부터)
+- 이전 답변이 위에 쌓이는 형태
+
+## 데이터 모델
+
+### centers 테이블 (Supabase)
+```sql
+CREATE TABLE centers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  center_name TEXT NOT NULL,
+  origin_story TEXT,
+  care_philosophy TEXT,
+  core_principle TEXT,
+  unique_detail TEXT,
+  vision TEXT,
+  other_strengths TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
 
 ## 기술 스택
 - **프레임워크**: Hono (Cloudflare Pages)
 - **스타일링**: TailwindCSS (CDN)
 - **아이콘**: Font Awesome
-- **인증**: Supabase Auth
-
-## 디자인
-- **메인 컬러**: #4A90A4 (따뜻한 블루-그린)
-- **스타일**: 깔끔하고 신뢰감 있는 톤
-- **반응형**: 모바일/태블릿/데스크톱 지원
+- **인증/DB**: Supabase (Auth + Database)
 
 ## 현재 상태
 
 ### ✅ 완료된 기능
 1. 랜딩페이지 전체 UI
-2. 로그인 페이지 UI + Supabase 연동
-3. 회원가입 페이지 UI + Supabase 연동
-4. 대시보드 페이지 UI
-5. Supabase 인증 (회원가입, 로그인, 로그아웃)
-6. 라우팅 보호 (인증 미들웨어)
-7. 사용자 정보 표시 (이름, 센터명, 크레딧)
+2. 로그인/회원가입 + Supabase 연동
+3. 로그아웃 기능
+4. 라우팅 보호 (인증 미들웨어)
+5. **온보딩 챗봇 인터뷰 (7단계)**
+6. **센터 정보 Supabase 저장**
+7. **대시보드 진입 시 온보딩 체크**
 8. 반응형 디자인
 
 ### ⏳ 미구현 기능
 1. 실제 AI 콘텐츠 생성 (기능 카드 클릭 시 alert만 표시)
 2. 크레딧 충전 시스템
-3. 콘텐츠 저장/불러오기 (DB 연동)
+3. 콘텐츠 저장/불러오기
 4. 결제 시스템
 5. 소셜 로그인 (Google, 네이버)
+
+## Supabase 테이블 생성 SQL
+
+```sql
+-- centers 테이블 생성
+CREATE TABLE IF NOT EXISTS centers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  center_name TEXT NOT NULL,
+  origin_story TEXT,
+  care_philosophy TEXT,
+  core_principle TEXT,
+  unique_detail TEXT,
+  vision TEXT,
+  other_strengths TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS (Row Level Security) 활성화
+ALTER TABLE centers ENABLE ROW LEVEL SECURITY;
+
+-- 사용자가 자신의 센터만 조회/수정할 수 있도록
+CREATE POLICY "Users can view own center" ON centers
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own center" ON centers
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own center" ON centers
+  FOR UPDATE USING (auth.uid() = user_id);
+```
 
 ## 개발 명령어
 
 ```bash
-# 개발 서버 시작
-npm run build && pm2 start ecosystem.config.cjs
-
 # 빌드
 npm run build
+
+# 개발 서버 시작
+pm2 start ecosystem.config.cjs
 
 # 서버 재시작
 pm2 restart carecontents-ai
 
 # 로그 확인
 pm2 logs carecontents-ai --nostream
-```
-
-## Supabase 설정 정보
-
-```javascript
-SUPABASE_URL: 'https://ohqujuoruhnfdlxssgrc.supabase.co'
-SUPABASE_ANON_KEY: 'sb_publishable_...'
 ```
 
 ## 파일 구조
@@ -109,6 +155,7 @@ webapp/
 │       ├── landing.tsx      # 랜딩페이지
 │       ├── login.tsx        # 로그인
 │       ├── signup.tsx       # 회원가입
+│       ├── onboarding.tsx   # 온보딩 (NEW)
 │       └── dashboard.tsx    # 대시보드
 ├── public/
 │   └── static/
@@ -124,20 +171,16 @@ webapp/
 
 1. **AI 콘텐츠 생성 기능 구현**
    - OpenAI API 연동
-   - 각 기능별 프롬프트 설계
+   - 센터 정보 기반 맞춤 프롬프트
    - 결과 화면 구현
 
-2. **데이터베이스 연동**
-   - Supabase에 contents 테이블 생성
-   - 생성된 콘텐츠 저장/조회
-
-3. **크레딧 시스템 구현**
+2. **크레딧 시스템 구현**
    - credits 테이블 생성
    - 크레딧 차감/충전 로직
 
-4. **결제 시스템**
-   - 토스페이먼츠/카카오페이 연동
-   - 구독 관리
+3. **콘텐츠 저장 기능**
+   - contents 테이블 생성
+   - 생성된 콘텐츠 저장/조회
 
 ---
 **Last Updated**: 2025-01-30
