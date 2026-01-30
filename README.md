@@ -1,21 +1,97 @@
-```txt
-npm install
-npm run dev
+# 케어콘텐츠AI - 방문요양 마케팅 AI 도우미
+
+## 프로젝트 개요
+- **이름**: 케어콘텐츠AI
+- **목표**: 방문요양센터의 마케팅 콘텐츠를 AI가 대신 작성해주는 SaaS 서비스
+- **주요 기능**: 블로그 제목/글, 네이버 플레이스, 당근마켓, 스레드/SNS 글 생성
+
+## 미리보기 URL
+- **개발 서버**: https://3000-ixlwp0galtqgfx5gnhuku-cc2fbc16.sandbox.novita.ai
+
+## 페이지 구성
+
+### 1. 랜딩페이지 (/)
+- 헤더: 로고, 로그인 버튼
+- 히어로: "방문요양 마케팅, AI가 대신 써드립니다" + CTA 버튼
+- 기능 소개: 5가지 카드 (블로그 제목, 블로그 글, 플레이스, 당근, 스레드)
+- 요금제: 3가지 플랜 카드 (스타터 19,900원, 프로 49,900원, 비즈니스 99,900원)
+- Footer
+
+### 2. 로그인 (/login)
+- 이메일/비밀번호 로그인 폼
+- 소셜 로그인 버튼 (Google, 네이버) - UI만 구현
+- 회원가입 링크
+
+### 3. 회원가입 (/signup)
+- 센터명, 원장님 성함, 이메일, 비밀번호 입력
+- 약관 동의 체크박스
+- 소셜 회원가입 버튼 - UI만 구현
+
+### 4. 대시보드 (/dashboard)
+- 상단: 로고, 크레딧 잔액 (15), 마이페이지 버튼
+- 인사: "안녕하세요, OOO센터 원장님!"
+- 5개 기능 카드 (각각 크레딧 표시: 제목 1, 글쓰기 5, 나머지 3)
+- 최근 생성 콘텐츠 목록 (목업 데이터)
+
+## 기술 스택
+- **프레임워크**: Hono (Cloudflare Pages)
+- **스타일링**: TailwindCSS (CDN)
+- **아이콘**: Font Awesome
+- **인증**: localStorage 기반 목업 (Supabase 연결 예정)
+
+## 디자인
+- **메인 컬러**: #4A90A4 (따뜻한 블루-그린)
+- **스타일**: 깔끔하고 신뢰감 있는 톤
+- **반응형**: 모바일/태블릿/데스크톱 지원
+
+## 현재 상태
+
+### ✅ 완료된 기능
+1. 랜딩페이지 전체 UI
+2. 로그인 페이지 UI
+3. 회원가입 페이지 UI
+4. 대시보드 페이지 UI
+5. 목업 인증 (localStorage)
+6. 반응형 디자인
+
+### ⏳ 미구현 기능
+1. 실제 AI 콘텐츠 생성 (기능 카드 클릭 시 alert만 표시)
+2. Supabase 인증 연동
+3. 크레딧 충전 시스템
+4. 콘텐츠 저장/불러오기
+5. 결제 시스템
+
+## 개발 명령어
+
+```bash
+# 개발 서버 시작
+npm run build && pm2 start ecosystem.config.cjs
+
+# 빌드
+npm run build
+
+# 로그 확인
+pm2 logs carecontents-ai --nostream
 ```
 
-```txt
-npm run deploy
-```
+## 다음 개발 단계 권장
 
-[For generating/synchronizing types based on your Worker configuration run](https://developers.cloudflare.com/workers/wrangler/commands/#types):
+1. **AI 콘텐츠 생성 기능 구현**
+   - OpenAI API 연동
+   - 각 기능별 프롬프트 설계
+   - 결과 화면 구현
 
-```txt
-npm run cf-typegen
-```
+2. **Supabase 인증 연동**
+   - 회원가입/로그인 실제 구현
+   - 세션 관리
 
-Pass the `CloudflareBindings` as generics when instantiation `Hono`:
+3. **데이터베이스 연동**
+   - 생성된 콘텐츠 저장
+   - 크레딧 시스템
 
-```ts
-// src/index.ts
-const app = new Hono<{ Bindings: CloudflareBindings }>()
-```
+4. **결제 시스템**
+   - 토스페이먼츠/카카오페이 연동
+   - 구독 관리
+
+---
+**Last Updated**: 2025-01-30
