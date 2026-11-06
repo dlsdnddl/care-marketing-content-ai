@@ -1,7 +1,7 @@
 // Gemini API 호출 모듈
 // API 키는 코드에 하드코딩하지 않고, 실행 환경(window.ENV) 또는
 // 브라우저 localStorage('GEMINI_API_KEY')에서 주입받습니다.
-const GEMINI_API_KEY = window.ENV?.GEMINI_API_KEY || localStorage.getItem('GEMINI_API_KEY') || '';
+let GEMINI_API_KEY = window.ENV?.GEMINI_API_KEY || localStorage.getItem('GEMINI_API_KEY') || '';
 
 // 사용 가능한 모델 목록 (우선순위 순)
 const GEMINI_MODELS = [
@@ -25,6 +25,19 @@ function delay(ms) {
 
 // Gemini API 호출 (재시도 및 모델 fallback 포함)
 async function callGemini(prompt, maxRetries = 3) {
+  // 키가 없으면 사용자에게 입력받아 localStorage에 저장 (이후 호출에 재사용)
+  if (!GEMINI_API_KEY) {
+    const entered = window.prompt(
+      'Gemini API 키가 설정되어 있지 않습니다.\nGoogle AI Studio(aistudio.google.com/apikey)에서 발급받은 키를 입력하세요.'
+    );
+    if (entered && entered.trim()) {
+      localStorage.setItem('GEMINI_API_KEY', entered.trim());
+      GEMINI_API_KEY = entered.trim();
+    } else {
+      throw new Error('API 키가 설정되지 않아 호출할 수 없습니다.');
+    }
+  }
+
   let lastError = null;
   
   // 각 모델에 대해 시도
