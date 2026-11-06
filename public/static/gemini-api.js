@@ -1,5 +1,7 @@
 // Gemini API 호출 모듈
-const GEMINI_API_KEY = 'AIzaSyD8fQqvZp1_jLvXM3uW0Nqu_IArcnh4lLY';
+// API 키는 코드에 하드코딩하지 않고, 실행 환경(window.ENV) 또는
+// 브라우저 localStorage('GEMINI_API_KEY')에서 주입받습니다.
+const GEMINI_API_KEY = window.ENV?.GEMINI_API_KEY || localStorage.getItem('GEMINI_API_KEY') || '';
 
 // 사용 가능한 모델 목록 (우선순위 순)
 const GEMINI_MODELS = [
